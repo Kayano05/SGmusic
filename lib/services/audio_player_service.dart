@@ -2,6 +2,7 @@ import 'package:just_audio/just_audio.dart';
 import '../models/track.dart';
 import '../models/playlist.dart';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 
 enum PlayMode {
   sequence,  // 顺序播放
@@ -9,7 +10,7 @@ enum PlayMode {
   random     // 随机播放
 }
 
-class AudioPlayerService {
+class AudioPlayerService extends ChangeNotifier {
   static AudioPlayerService? _instance;
   final AudioPlayer _player = AudioPlayer();
   Track? _currentTrack;
@@ -43,13 +44,25 @@ class AudioPlayerService {
 
     switch (_playMode) {
       case PlayMode.sequence:
-        await playNext();
+        if (_currentPlaylist!.length == 1) {
+          // 如果只有一首歌，重新播放当前歌曲
+          await _player.seek(Duration.zero);
+          await _player.play();
+        } else {
+          await playNext();
+        }
         break;
       case PlayMode.loop:
         // 单曲循环由 setLoopMode 处理
         break;
       case PlayMode.random:
-        await playRandom();
+        if (_currentPlaylist!.length == 1) {
+          // 如果只有一首歌，重新播放当前歌曲
+          await _player.seek(Duration.zero);
+          await _player.play();
+        } else {
+          await playRandom();
+        }
         break;
     }
   }
@@ -85,7 +98,11 @@ class AudioPlayerService {
 
   Future<void> playNext() async {
     if (_currentPlaylist != null && _currentIndex >= 0) {
-      if (_playMode == PlayMode.random) {
+      if (_currentPlaylist!.length == 1) {
+        // 如果只有一首歌，重新播放当前歌曲
+        await _player.seek(Duration.zero);
+        await _player.play();
+      } else if (_playMode == PlayMode.random) {
         await playRandom();
       } else {
         final nextIndex = (_currentIndex + 1) % _currentPlaylist!.length;
@@ -97,7 +114,11 @@ class AudioPlayerService {
 
   Future<void> playPrevious() async {
     if (_currentPlaylist != null && _currentIndex >= 0) {
-      if (_playMode == PlayMode.random) {
+      if (_currentPlaylist!.length == 1) {
+        // 如果只有一首歌，重新播放当前歌曲
+        await _player.seek(Duration.zero);
+        await _player.play();
+      } else if (_playMode == PlayMode.random) {
         await playRandom();
       } else {
         final previousIndex = (_currentIndex - 1 + _currentPlaylist!.length) % _currentPlaylist!.length;
@@ -136,6 +157,14 @@ class AudioPlayerService {
       await _player.setLoopMode(LoopMode.one);
     } else {
       await _player.setLoopMode(LoopMode.off);
+    }
+    notifyListeners();
+  }
+
+  void updateCurrentTrack(Track newTrack) {
+    if (_currentTrack?.filePath == newTrack.filePath) {
+      _currentTrack = newTrack;
+      notifyListeners();
     }
   }
 } 

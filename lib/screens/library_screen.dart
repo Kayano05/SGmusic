@@ -89,11 +89,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
             onPressed: _createPlaylist,
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('创建'),
+            child: const Text(
+              '创建',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ),
         ],
       ),
@@ -446,11 +454,19 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             }),
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('确定'),
+            child: const Text(
+              '确定',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ),
         ],
       ),
@@ -479,6 +495,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
               _tracks[index] = newTrack;
             }
           });
+          
+          AudioPlayerService.instance.updateCurrentTrack(newTrack);
+          
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('歌曲信息已更新')),

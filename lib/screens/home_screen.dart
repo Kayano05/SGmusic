@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.only(right: 16.0),
               child: Center(
                 child: Text(
-                  'Save Children of Gaza',
+                  'Save the Children of Gaza',
                   style: TextStyle(
                     fontSize: 14,
                     fontStyle: FontStyle.italic,
@@ -241,11 +241,14 @@ class HomeScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           IconButton(
-                            icon: Icon(
-                              Icons.shuffle,
-                              color: playerService.playMode == PlayMode.random
-                                  ? Theme.of(context).primaryColor
-                                  : Colors.grey[400],
+                            icon: AnimatedBuilder(
+                              animation: playerService,
+                              builder: (context, child) => Icon(
+                                Icons.shuffle,
+                                color: playerService.playMode == PlayMode.random
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey[400],
+                              ),
                             ),
                             iconSize: 24,
                             onPressed: () {
@@ -298,13 +301,16 @@ class HomeScreen extends StatelessWidget {
                             onPressed: () => playerService.playNext(),
                           ),
                           IconButton(
-                            icon: Icon(
-                              playerService.playMode == PlayMode.loop
-                                  ? Icons.repeat_one
-                                  : Icons.repeat,
-                              color: playerService.playMode == PlayMode.loop
-                                  ? Theme.of(context).primaryColor
-                                  : Colors.grey[400],
+                            icon: AnimatedBuilder(
+                              animation: playerService,
+                              builder: (context, child) => Icon(
+                                playerService.playMode == PlayMode.loop
+                                    ? Icons.repeat_one
+                                    : Icons.repeat,
+                                color: playerService.playMode == PlayMode.loop
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey[400],
+                              ),
                             ),
                             iconSize: 24,
                             onPressed: () {

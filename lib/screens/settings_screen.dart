@@ -116,11 +116,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   }),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('确定'),
+                  child: const Text(
+                    '确定',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -380,11 +388,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onTap: () {
                   showAboutDialog(
                     context: context,
-                    applicationName: 'Music Player',
+                    applicationName: 'SGmusic',
                     applicationVersion: '1.0.0',
                     applicationIcon: const Icon(Icons.music_note),
                     children: const [
-                      Text('一个简单的音乐播放器，支持B站视频音频下载。'),
+                      Text('一个简单的音乐播放器，支持B站音频下载。'),
                     ],
                   );
                 },
