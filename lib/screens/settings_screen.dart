@@ -21,6 +21,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = false;
   double _downloadProgress = 0;
   bool _isDownloading = false;
+  bool _isBatchDownloading = false;
+  int _currentDownloadIndex = 0;
+  int _totalDownloads = 0;
 
   Future<void> _downloadAudio() async {
     if (_bvController.text.isEmpty) {
@@ -196,6 +199,212 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _batchDownloadFromFavorite() async {
+    final TextEditingController fidController = TextEditingController();
+    final TextEditingController playlistController = TextEditingController();
+    bool createNewPlaylist = false;
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: Text(
+            '从收藏夹导入',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: fidController,
+                decoration: InputDecoration(
+                  labelText: '收藏夹ID (FID)',
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.background,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              CheckboxListTile(
+                value: createNewPlaylist,
+                onChanged: (value) {
+                  setState(() {
+                    createNewPlaylist = value ?? false;
+                  });
+                },
+                title: Text(
+                  '同时创建新歌单',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                activeColor: Theme.of(context).primaryColor,
+              ),
+              if (createNewPlaylist) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: playlistController,
+                  decoration: InputDecoration(
+                    labelText: '歌单名称',
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              Text(
+                '提示：在收藏夹链接中找到media_id参数即为FID',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, {
+                'fid': fidController.text,
+                'createPlaylist': createNewPlaylist,
+                'playlistName': playlistController.text,
+              }),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('开始导入'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null && result['fid'].isNotEmpty) {
+      String? newPlaylistName;
+      if (result['createPlaylist'] && result['playlistName'].isNotEmpty) {
+        try {
+          final playlistService = await PlaylistService.getInstance();
+          await playlistService.createPlaylist(result['playlistName']);
+          newPlaylistName = result['playlistName'];
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('创建歌单失败：$e')),
+            );
+            return;
+          }
+        }
+      }
+
+      setState(() {
+        _isBatchDownloading = true;
+        _currentDownloadIndex = 0;
+        _downloadProgress = 0;
+      });
+
+      try {
+        final videos = await BilibiliService.getFavoriteList(result['fid']);
+        _totalDownloads = videos.length;
+
+        for (var i = 0; i < videos.length; i++) {
+          setState(() {
+            _currentDownloadIndex = i;
+          });
+
+          try {
+            final video = videos[i];
+            final audioUrl = await BilibiliService.getAudioUrl(video['bvid']);
+            
+            final directory = await getApplicationDocumentsDirectory();
+            final musicDir = Directory('${directory.path}/Music');
+            if (!await musicDir.exists()) {
+              await musicDir.create();
+            }
+
+            final cleanTitle = video['title'].replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+            final file = File('${musicDir.path}/$cleanTitle.mp3');
+
+            final dio = Dio();
+            await dio.download(
+              audioUrl,
+              file.path,
+              options: Options(
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                  'Referer': 'https://www.bilibili.com'
+                },
+              ),
+              onReceiveProgress: (received, total) {
+                if (total != -1) {
+                  setState(() {
+                    _downloadProgress = received / total;
+                  });
+                }
+              },
+            );
+
+            final track = Track(
+              title: video['title'],
+              artist: 'B站视频',
+              filePath: file.path,
+              coverUrl: video['pic'],
+              bvid: video['bvid'],
+            );
+            
+            final playlistService = await PlaylistService.getInstance();
+            await playlistService.addTrackToAutoPlaylist(track);
+            
+            if (newPlaylistName != null) {
+              await playlistService.addTrackToPlaylist(newPlaylistName, track);
+            }
+          } catch (e) {
+            print('下载失败: ${videos[i]['title']} - $e');
+          }
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(
+              newPlaylistName != null 
+                  ? '批量下载完成，已添加到自动播放列表和"$newPlaylistName"'
+                  : '批量下载完成，已添加到自动播放列表'
+            )),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('错误：$e')),
+          );
+        }
+      } finally {
+        setState(() {
+          _isBatchDownloading = false;
+          _currentDownloadIndex = 0;
+          _downloadProgress = 0;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
@@ -355,6 +564,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ],
                         ),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 48,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // ... 原有的下载按钮代码 ...
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            height: 48,
+                            child: ElevatedButton.icon(
+                              onPressed: _isBatchDownloading ? null : _batchDownloadFromFavorite,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).primaryColor,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: const Icon(Icons.playlist_add),
+                              label: _isBatchDownloading
+                                  ? Text('${_currentDownloadIndex + 1}/$_totalDownloads')
+                                  : const Text('批量导入'),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

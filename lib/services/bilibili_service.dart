@@ -118,4 +118,26 @@ class BilibiliService {
       throw Exception('获取音频地址失败：$e');
     }
   }
+
+  static Future<List<Map<String, dynamic>>> getFavoriteList(String fid) async {
+    final response = await http.get(
+      Uri.parse('https://api.bilibili.com/x/v3/fav/resource/list?media_id=$fid&ps=20&pn=1'),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['code'] == 0) {
+        final medias = data['data']['medias'] as List;
+        return medias.map((media) => {
+          'bvid': media['bvid'],
+          'title': media['title'],
+          'pic': media['cover'],
+        }).toList();
+      }
+    }
+    throw Exception('获取收藏夹失败');
+  }
 } 
