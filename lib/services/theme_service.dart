@@ -6,100 +6,61 @@ class ThemeService extends ChangeNotifier {
   static ThemeService? _instance;
   
   static final List<ThemeData> themes = [
-    // 默认主题：深邃夜空
+    // 深邃夜空 -> 晴空蓝
     ThemeData(
       primaryColor: const Color(0xFF6B8CFF),
-      scaffoldBackgroundColor: const Color(0xFF1A1B2E),
-      brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
+      scaffoldBackgroundColor: const Color(0xFFF0F4FF),
+      brightness: Brightness.light,
+      colorScheme: const ColorScheme.light(
         primary: Color(0xFF6B8CFF),
-        secondary: Color(0xFF2E325C),
-        surface: Color(0xFF1A1B2E),
-        background: Color(0xFF1A1B2E),
+        secondary: Color(0xFFE8EDFF),
+        surface: Color(0xFFF0F4FF),
+        background: Color(0xFFF0F4FF),
         onPrimary: Colors.white,
-        onSecondary: Colors.white70,
-        onSurface: Colors.white,
-        onBackground: Colors.white,
+        onSecondary: Color(0xFF4A5B8C),
+        onSurface: Color(0xFF4A5B8C),
+        onBackground: Color(0xFF4A5B8C),
       ),
-      cardColor: const Color(0xFF2E325C),
-      dividerColor: const Color(0xFF3D4163),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: Colors.white),
-        bodyMedium: TextStyle(color: Colors.white),
-        titleMedium: TextStyle(color: Colors.white),
-      ),
-      iconTheme: const IconThemeData(
-        color: Colors.white,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF1A1B2E),
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      cardColor: const Color(0xFFE8EDFF),
+      dividerColor: const Color(0xFFD8E1FF),
     ),
     
-    // 森林晨露
+    // 森林晨露 -> 清新绿
     ThemeData(
       primaryColor: const Color(0xFF7BCEA0),
-      scaffoldBackgroundColor: const Color(0xFF1C2827),
-      brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
+      scaffoldBackgroundColor: const Color(0xFFF0FFF7),
+      brightness: Brightness.light,
+      colorScheme: const ColorScheme.light(
         primary: Color(0xFF7BCEA0),
-        secondary: Color(0xFF2C4A3F),
-        surface: Color(0xFF1C2827),
-        background: Color(0xFF1C2827),
+        secondary: Color(0xFFE8FFF2),
+        surface: Color(0xFFF0FFF7),
+        background: Color(0xFFF0FFF7),
         onPrimary: Colors.white,
-        onSecondary: Colors.white70,
-        onSurface: Colors.white,
-        onBackground: Colors.white,
+        onSecondary: Color(0xFF4A8C6B),
+        onSurface: Color(0xFF4A8C6B),
+        onBackground: Color(0xFF4A8C6B),
       ),
-      cardColor: const Color(0xFF2C4A3F),
-      dividerColor: const Color(0xFF3D5A4F),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: Colors.white),
-        bodyMedium: TextStyle(color: Colors.white),
-        titleMedium: TextStyle(color: Colors.white),
-      ),
-      iconTheme: const IconThemeData(
-        color: Colors.white,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF1C2827),
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      cardColor: const Color(0xFFE8FFF2),
+      dividerColor: const Color(0xFFD8FFE8),
     ),
     
-    // 紫罗兰黄昏
+    // 紫罗兰黄昏 -> 梦幻紫
     ThemeData(
       primaryColor: const Color(0xFFB784E0),
-      scaffoldBackgroundColor: const Color(0xFF251E2C),
-      brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
+      scaffoldBackgroundColor: const Color(0xFFF7F0FF),
+      brightness: Brightness.light,
+      colorScheme: const ColorScheme.light(
         primary: Color(0xFFB784E0),
-        secondary: Color(0xFF4A3960),
-        surface: Color(0xFF251E2C),
-        background: Color(0xFF251E2C),
+        secondary: Color(0xFFF2E8FF),
+        surface: Color(0xFFF7F0FF),
+        background: Color(0xFFF7F0FF),
         onPrimary: Colors.white,
-        onSecondary: Colors.white70,
-        onSurface: Colors.white,
-        onBackground: Colors.white,
+        onSecondary: Color(0xFF7A4A8C),
+        onSurface: Color(0xFF7A4A8C),
+        onBackground: Color(0xFF7A4A8C),
       ),
-      cardColor: const Color(0xFF4A3960),
-      dividerColor: const Color(0xFF5A4970),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: Colors.white),
-        bodyMedium: TextStyle(color: Colors.white),
-        titleMedium: TextStyle(color: Colors.white),
-      ),
-      iconTheme: const IconThemeData(
-        color: Colors.white,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF251E2C),
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      cardColor: const Color(0xFFF2E8FF),
+      dividerColor: const Color(0xFFE8D8FF),
     ),
     
     // 晨曦云霭

@@ -133,7 +133,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   end: Alignment.bottomCenter,
                   colors: [
                     Theme.of(context).primaryColor,
-                    Colors.black,
+                    Theme.of(context).scaffoldBackgroundColor,
                   ],
                 ),
               ),

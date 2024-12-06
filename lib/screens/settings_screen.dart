@@ -7,6 +7,7 @@ import '../services/bilibili_service.dart';
 import '../models/track.dart';
 import '../services/playlist_service.dart';
 import '../services/theme_service.dart';
+import 'package:dio/dio.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,6 +19,8 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final TextEditingController _bvController = TextEditingController();
   bool _isLoading = false;
+  double _downloadProgress = 0;
+  bool _isDownloading = false;
 
   Future<void> _downloadAudio() async {
     if (_bvController.text.isEmpty) {
@@ -29,10 +32,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     setState(() {
       _isLoading = true;
+      _isDownloading = true;
+      _downloadProgress = 0;
     });
 
     try {
-      // 下载逻辑保持不变...
       var status = await Permission.storage.status;
       if (!status.isGranted) {
         await Permission.storage.request();
@@ -51,127 +55,131 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final cleanTitle = title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
       final file = File('${musicDir.path}/$cleanTitle.mp3');
 
-      final response = await http.get(
-        Uri.parse(audioUrl),
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Referer': 'https://www.bilibili.com'
+      final dio = Dio();
+      await dio.download(
+        audioUrl,
+        file.path,
+        options: Options(
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Referer': 'https://www.bilibili.com'
+          },
+        ),
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            setState(() {
+              _downloadProgress = received / total;
+            });
+          }
         },
       );
 
-      if (response.statusCode == 200) {
-        await file.writeAsBytes(response.bodyBytes);
-        
-        // 显示编辑名称对话框
-        if (mounted) {
-          final TextEditingController titleController = TextEditingController(text: title);
-          final TextEditingController artistController = TextEditingController(text: '');  // 空白供用户输入
-          final result = await showDialog<Map<String, String>>(
-            context: context,
-            builder: (context) => AlertDialog(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              title: Text(
-                '编辑歌曲信息',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: InputDecoration(
-                      labelText: '歌曲名称',
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.background,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    autofocus: true,
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: artistController,
-                    decoration: InputDecoration(
-                      labelText: '艺术家',
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.background,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, null),
-                  child: const Text('取消'),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context, {
-                    'title': titleController.text,
-                    'artist': artistController.text,
-                  }),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
+      if (mounted) {
+        final TextEditingController titleController = TextEditingController(text: title);
+        final TextEditingController artistController = TextEditingController(text: '');  // 空白供用户输入
+        final result = await showDialog<Map<String, String>>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: Text(
+              '编辑歌曲信息',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: '歌曲名称',
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.background,
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
                     ),
                   ),
-                  child: const Text(
-                    '确定',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  autofocus: true,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: artistController,
+                  decoration: InputDecoration(
+                    labelText: '艺术家',
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
                     ),
+                  ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
             ),
-          );
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, null),
+                child: const Text('取消'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, {
+                  'title': titleController.text,
+                  'artist': artistController.text,
+                }),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  '确定',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
 
-          if (result != null) {
-            final finalTitle = result['title']?.trim().isNotEmpty == true 
-                ? result['title']! 
-                : title;
-            final finalArtist = result['artist']?.trim().isNotEmpty == true 
-                ? result['artist']! 
-                : 'B站视频';  // 如果用户没有输入，使用默认值
-            
-            final track = Track(
-              title: finalTitle,
-              artist: finalArtist,  // 使用用户输入的艺术家名称
-              filePath: file.path,
-              coverUrl: videoInfo['pic'],
-              bvid: _bvController.text,
+        if (result != null) {
+          final finalTitle = result['title']?.trim().isNotEmpty == true 
+              ? result['title']! 
+              : title;
+          final finalArtist = result['artist']?.trim().isNotEmpty == true 
+              ? result['artist']! 
+              : 'B站视频';  // 如果用户没有输入，使用默认值
+          
+          final track = Track(
+            title: finalTitle,
+            artist: finalArtist,  // 使用用户输入的艺术家名称
+            filePath: file.path,
+            coverUrl: videoInfo['pic'],
+            bvid: _bvController.text,
+          );
+          
+          final playlistService = await PlaylistService.getInstance();
+          await playlistService.addTrackToAutoPlaylist(track);
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('下载完成并已添加到自动播放列表')),
             );
-            
-            final playlistService = await PlaylistService.getInstance();
-            await playlistService.addTrackToAutoPlaylist(track);
-            
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('下载完成并已添加到自动播放列表')),
-              );
-              _bvController.clear();
-            }
+            _bvController.clear();
           }
         }
-      } else {
-        throw Exception('下载失败：${response.statusCode}');
       }
     } catch (e) {
       if (mounted) {
@@ -182,6 +190,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } finally {
       setState(() {
         _isLoading = false;
+        _isDownloading = false;
+        _downloadProgress = 0;
       });
     }
   }
@@ -210,7 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   end: Alignment.bottomCenter,
                   colors: [
                     Theme.of(context).primaryColor,
-                    Colors.black,
+                    Theme.of(context).scaffoldBackgroundColor,
                   ],
                 ),
               ),
@@ -288,32 +298,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       SizedBox(
                         width: double.infinity,
                         height: 48,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _downloadAudio,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                )
-                              : const Text(
-                                  '下载',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (_isDownloading)
+                              LinearProgressIndicator(
+                                value: _downloadProgress,
+                                backgroundColor: Theme.of(context).colorScheme.surface,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).primaryColor,
+                                ),
+                              ),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _downloadAudio,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
+                                child: _isLoading
+                                    ? Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '下载中 ${(_downloadProgress * 100).toInt()}%',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Text(
+                                        '下载',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
