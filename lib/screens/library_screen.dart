@@ -63,28 +63,34 @@ class _LibraryScreenState extends State<LibraryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Text('创建播放列表'),
+        title: Text(
+          '创建播放列表',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
         content: TextField(
           controller: _playlistNameController,
           decoration: InputDecoration(
             hintText: '请输入播放列表名称',
             filled: true,
-            fillColor: Colors.grey[800],
+            fillColor: Theme.of(context).colorScheme.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide.none,
             ),
+          ),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取'),
+            child: const Text('取消'),
           ),
           ElevatedButton(
             onPressed: _createPlaylist,
@@ -107,6 +113,27 @@ class _LibraryScreenState extends State<LibraryScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _deletePlaylist(Playlist playlist) async {
+    if (playlist.name == 'auto') return;
+    
+    try {
+      final playlistService = await PlaylistService.getInstance();
+      await playlistService.deletePlaylist(playlist.name);
+      await _loadPlaylists();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('已删除歌单：${playlist.name}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('删除失败：$e')),
+        );
+      }
+    }
   }
 
   @override
@@ -192,65 +219,121 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ],
         ),
         SliverPadding(
-          padding: const EdgeInsets.all(16),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final playlist = _playlists[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PlaylistDetailScreen(playlist: playlist),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PlaylistDetailScreen(playlist: playlist),
+                        ),
+                      );
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    tileColor: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                    leading: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      child: Icon(
+                        Icons.playlist_play,
+                        size: 32,
+                        color: Theme.of(context).primaryColor,
+                      ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.playlist_play,
-                          size: 48,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          playlist.name,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${playlist.tracks.length} 首歌曲',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context).colorScheme.onSecondary.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
+                    title: Text(
+                      playlist.name,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSecondary,
+                      ),
                     ),
+                    subtitle: Text(
+                      '${playlist.tracks.length} 首歌曲',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSecondary.withOpacity(0.7),
+                      ),
+                    ),
+                    trailing: playlist.name != 'auto'
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.more_vert,
+                              color: Theme.of(context).colorScheme.onSecondary,
+                            ),
+                            onPressed: () {
+                              showModalBottomSheet(
+                                context: context,
+                                backgroundColor: Theme.of(context).colorScheme.surface,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                                ),
+                                builder: (context) => SafeArea(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ListTile(
+                                        leading: const Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.red,
+                                        ),
+                                        title: const Text(
+                                          '删除歌单',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                        onTap: () async {
+                                          Navigator.pop(context);
+                                          final confirmed = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              backgroundColor: Theme.of(context).colorScheme.surface,
+                                              title: Text(
+                                                '删除歌单',
+                                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                              ),
+                                              content: Text(
+                                                '确定要删除歌单"${playlist.name}"吗？\n此操作不可恢复。',
+                                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context, false),
+                                                  child: const Text('取消'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () => Navigator.pop(context, true),
+                                                  child: const Text(
+                                                    '删除',
+                                                    style: TextStyle(color: Colors.red),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+
+                                          if (confirmed == true) {
+                                            await _deletePlaylist(playlist);
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        : null,
                   ),
                 );
               },

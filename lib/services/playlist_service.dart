@@ -103,6 +103,8 @@ class PlaylistService {
     if (name == _autoPlaylistName) {
       throw Exception('不能删除自动播放列表');
     }
+    
+    // 直接从 _playlists Map 中删除
     _playlists.remove(name);
     await _savePlaylists();
   }
