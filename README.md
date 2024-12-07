@@ -10,6 +10,7 @@ Functions include
 
 BugFix
 1 Fixed theme being too dark
+
 2 Fixed download progress bar not showing
 3 Fixed the home page control component color being too close to the background
 4 Fixed an issue where app ICONS are not displayed
