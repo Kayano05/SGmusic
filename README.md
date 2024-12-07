@@ -34,3 +34,16 @@ If you have any questions, please give me feedback. May this friendship last for
 ## Getting Started
 
 Download the Android package and open it directly
+
+The local storage location of the audio is:
+
+```dart
+final directory = await getApplicationDocumentsDirectory();
+final musicDir = Directory('${directory.path}/Music');
+if (!await musicDir.exists()) {
+  await musicDir.create();
+}
+
+final cleanTitle = title.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+final file = File('${musicDir.path}/$cleanTitle.mp3');
+```
