@@ -2,10 +2,15 @@
 
 Bilibili music player for Android platform
 Functions include
+
 1 Use the BV number to download the audio to the local as the playback source
+
 2 Automatically identify the cover
+
 3 Create a custom playlist
+
 4 kinds of theme switching
+
 5 Batch import and download using FID
 
 BugFix
