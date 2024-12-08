@@ -4,6 +4,7 @@ import '../models/track.dart';
 import '../models/playlist.dart';
 import '../services/audio_player_service.dart';
 import 'dart:io';
+import '../widgets/modern_list_item.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -495,7 +496,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: const Text('��消'),
           ),
         ],
       ),
@@ -625,109 +626,33 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
         itemCount: _tracks.length,
         itemBuilder: (context, index) {
           final track = _tracks[index];
-          return Dismissible(
-            key: Key(track.filePath),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 16),
-              child: const Icon(
-                Icons.delete,
-                color: Colors.white,
+          final isPlaying = AudioPlayerService.instance.currentTrack?.filePath == track.filePath;
+          
+          return ModernTrackListItem(
+            track: track,
+            isPlaying: isPlaying,
+            onTap: () {
+              AudioPlayerService.instance.play(
+                track,
+                playlist: _tracks,
+              );
+            },
+            actions: [
+              TrackActionButton(
+                icon: Icons.edit,
+                onPressed: () => _editTrackInfo(track),
               ),
-            ),
-            confirmDismiss: (direction) async {
-              return await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  title: Text(
-                    '确认删除',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                  ),
-                  content: Text(
-                    '确定要从"${widget.playlist.name}"中删除"${track.title}"吗？\n'
-                    '${widget.playlist.name == 'auto' ? '注意：这将从本地存储中删除音频文件。' : ''}',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('取消'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text(
-                        '删除',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
+              TrackActionButton(
+                icon: Icons.playlist_add,
+                onPressed: () => _showAddToPlaylistDialog(track),
+              ),
+              if (widget.playlist.name != 'auto')
+                TrackActionButton(
+                  icon: Icons.remove_circle_outline,
+                  onPressed: () => _removeTrack(track),
+                  color: Colors.red,
                 ),
-              ) ?? false;
-            },
-            onDismissed: (direction) {
-              _removeTrack(track);
-            },
-            child: ListTile(
-              leading: track.coverUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.network(
-                        track.coverUrl!,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 48,
-                            height: 48,
-                            color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
-                            child: Icon(
-                              Icons.music_note,
-                              color: Theme.of(context).colorScheme.onSecondary,
-                            ),
-                          );
-                        },
-                      ),
-                    )
-                  : Container(
-                      width: 48,
-                      height: 48,
-                      color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
-                      child: Icon(
-                        Icons.music_note,
-                        color: Theme.of(context).colorScheme.onSecondary,
-                      ),
-                    ),
-              title: Text(track.title),
-              subtitle: Text(track.artist),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () => _editTrackInfo(track),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.playlist_add),
-                    onPressed: () => _showAddToPlaylistDialog(track),
-                  ),
-                  if (widget.playlist.name != 'auto')
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: () => _removeTrack(track),
-                    ),
-                ],
-              ),
-              onTap: () {
-                AudioPlayerService.instance.play(
-                  track,
-                  playlist: _tracks,
-                );
-              },
-            ),
+            ],
           );
         },
       ),

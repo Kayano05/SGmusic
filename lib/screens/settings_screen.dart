@@ -8,6 +8,8 @@ import '../models/track.dart';
 import '../services/playlist_service.dart';
 import '../services/theme_service.dart';
 import 'package:dio/dio.dart';
+import '../widgets/modern_card.dart';
+import '../widgets/modern_button.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -457,39 +459,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // 下载功能区域
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondary,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
+                child: ModernTitleCard(
+                  icon: Icons.video_library,
+                  title: 'B站音频下载',
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.video_library,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'B站音频下载',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
                       TextField(
                         controller: _bvController,
                         decoration: InputDecoration(
@@ -504,97 +478,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (_isDownloading)
-                              LinearProgressIndicator(
-                                value: _downloadProgress,
-                                backgroundColor: Theme.of(context).colorScheme.surface,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Theme.of(context).primaryColor,
-                                ),
-                              ),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _downloadAudio,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context).primaryColor,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                child: _isLoading
-                                    ? Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            '下载中 ${(_downloadProgress * 100).toInt()}%',
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    : const Text(
-                                        '下载',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       Row(
                         children: [
                           Expanded(
-                            child: SizedBox(
-                              height: 48,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  // ... 原有的下载按钮代码 ...
-                                ],
-                              ),
+                            child: ModernButton(
+                              label: _isLoading ? '下载中 ${(_downloadProgress * 100).toInt()}%' : '下载',
+                              icon: Icons.download,
+                              onPressed: _isLoading ? () {} : () {
+                                _downloadAudio();
+                              },
+                              isLoading: _isLoading,
+                              isFullWidth: true,
+                              progress: _isDownloading ? _downloadProgress : null,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            height: 48,
-                            child: ElevatedButton.icon(
-                              onPressed: _isBatchDownloading ? null : _batchDownloadFromFavorite,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).primaryColor,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              icon: const Icon(Icons.playlist_add),
-                              label: _isBatchDownloading
-                                  ? Text('${_currentDownloadIndex + 1}/$_totalDownloads')
-                                  : const Text('批量导入'),
-                            ),
+                          const SizedBox(width: 12),
+                          ModernButton(
+                            label: _isBatchDownloading 
+                                ? '${_currentDownloadIndex + 1}/$_totalDownloads' 
+                                : '批量导入',
+                            icon: Icons.playlist_add,
+                            onPressed: _isBatchDownloading ? () {} : () {
+                              _batchDownloadFromFavorite();
+                            },
+                            isLoading: _isBatchDownloading,
+                            backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                            foregroundColor: Theme.of(context).primaryColor,
                           ),
                         ],
                       ),
@@ -617,58 +526,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.palette,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            '主题设置',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                child: ModernTitleCard(
+                  icon: Icons.palette,
+                  title: '主题设置',
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < ThemeService.themeNames.length; i++)
+                        ModernListTile(
+                          title: ThemeService.themeNames[i],
+                          trailing: [
+                            Radio<int>(
+                              value: i,
+                              groupValue: ThemeService.instance.currentThemeIndex,
+                              onChanged: (value) async {
+                                await ThemeService.instance.setTheme(value!);
+                              },
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      padding: EdgeInsets.zero,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: ThemeService.themeNames.length,
-                      itemBuilder: (context, index) {
-                        return RadioListTile<int>(
-                          value: index,
-                          groupValue: ThemeService.instance.currentThemeIndex,
-                          onChanged: (value) async {
-                            await ThemeService.instance.setTheme(value!);
-                            if (mounted) {
-                              setState(() {});
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('主题已更新'),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          title: Text(ThemeService.themeNames[index]),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                          dense: true,
-                        );
-                      },
-                    ),
-                  ],
+                          ],
+                        ),
+                    ],
+                  ),
                 ),
               ),
 

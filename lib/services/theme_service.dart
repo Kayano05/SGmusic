@@ -6,61 +6,163 @@ class ThemeService extends ChangeNotifier {
   static ThemeService? _instance;
   
   static final List<ThemeData> themes = [
-    // 深邃夜空 -> 晴空蓝
+    // 晴空蓝
     ThemeData(
-      primaryColor: const Color(0xFF6B8CFF),
-      scaffoldBackgroundColor: const Color(0xFFF0F4FF),
+      primaryColor: const Color(0xFF82A0D8),
+      scaffoldBackgroundColor: const Color(0xFFF5F7FA),
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
-        primary: Color(0xFF6B8CFF),
-        secondary: Color(0xFFE8EDFF),
-        surface: Color(0xFFF0F4FF),
-        background: Color(0xFFF0F4FF),
+        primary: Color(0xFF82A0D8),
+        secondary: Color(0xFFEAEFF7),
+        surface: Color(0xFFF5F7FA),
+        background: Color(0xFFF5F7FA),
         onPrimary: Colors.white,
-        onSecondary: Color(0xFF4A5B8C),
-        onSurface: Color(0xFF4A5B8C),
-        onBackground: Color(0xFF4A5B8C),
+        onSecondary: Color(0xFF4A5B73),
+        onSurface: Color(0xFF4A5B73),
+        onBackground: Color(0xFF4A5B73),
       ),
-      cardColor: const Color(0xFFE8EDFF),
-      dividerColor: const Color(0xFFD8E1FF),
+      cardColor: const Color(0xFFFFFFFF),
+      dividerColor: const Color(0xFFE0E5EB),
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF2D3142),
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF2D3142),
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          color: Color(0xFF4A5B73),
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          color: Color(0xFF4A5B73),
+        ),
+      ),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF4A5B73),
+        size: 24,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Color(0xFF4A5B73)),
+        titleTextStyle: TextStyle(
+          color: Color(0xFF2D3142),
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     ),
     
     // 森林晨露 -> 清新绿
     ThemeData(
       primaryColor: const Color(0xFF7BCEA0),
-      scaffoldBackgroundColor: const Color(0xFFF0FFF7),
+      scaffoldBackgroundColor: const Color(0xFFF8FCFA),
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
         primary: Color(0xFF7BCEA0),
-        secondary: Color(0xFFE8FFF2),
-        surface: Color(0xFFF0FFF7),
-        background: Color(0xFFF0FFF7),
+        secondary: Color(0xFFE8F6F0),
+        surface: Color(0xFFF8FCFA),
+        background: Color(0xFFF8FCFA),
         onPrimary: Colors.white,
-        onSecondary: Color(0xFF4A8C6B),
-        onSurface: Color(0xFF4A8C6B),
-        onBackground: Color(0xFF4A8C6B),
+        onSecondary: Color(0xFF2D5242),
+        onSurface: Color(0xFF2D5242),
+        onBackground: Color(0xFF2D5242),
       ),
-      cardColor: const Color(0xFFE8FFF2),
-      dividerColor: const Color(0xFFD8FFE8),
+      cardColor: const Color(0xFFFFFFFF),
+      dividerColor: const Color(0xFFE0EBE5),
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF2D3142),
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF2D3142),
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          color: Color(0xFF2D5242),
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          color: Color(0xFF2D5242),
+        ),
+      ),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF2D5242),
+        size: 24,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Color(0xFF2D5242)),
+        titleTextStyle: TextStyle(
+          color: Color(0xFF2D3142),
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     ),
     
     // 紫罗兰黄昏 -> 梦幻紫
     ThemeData(
       primaryColor: const Color(0xFFB784E0),
-      scaffoldBackgroundColor: const Color(0xFFF7F0FF),
+      scaffoldBackgroundColor: const Color(0xFFFCF8FF),
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
         primary: Color(0xFFB784E0),
-        secondary: Color(0xFFF2E8FF),
-        surface: Color(0xFFF7F0FF),
-        background: Color(0xFFF7F0FF),
+        secondary: Color(0xFFF4E8FF),
+        surface: Color(0xFFFCF8FF),
+        background: Color(0xFFFCF8FF),
         onPrimary: Colors.white,
-        onSecondary: Color(0xFF7A4A8C),
-        onSurface: Color(0xFF7A4A8C),
-        onBackground: Color(0xFF7A4A8C),
+        onSecondary: Color(0xFF583D71),
+        onSurface: Color(0xFF583D71),
+        onBackground: Color(0xFF583D71),
       ),
-      cardColor: const Color(0xFFF2E8FF),
-      dividerColor: const Color(0xFFE8D8FF),
+      cardColor: const Color(0xFFFFFFFF),
+      dividerColor: const Color(0xFFE8E0EB),
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF2D3142),
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF2D3142),
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 16,
+          color: Color(0xFF583D71),
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          color: Color(0xFF583D71),
+        ),
+      ),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF583D71),
+        size: 24,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Color(0xFF583D71)),
+        titleTextStyle: TextStyle(
+          color: Color(0xFF2D3142),
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     ),
     
     // 晨曦云霭

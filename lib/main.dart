@@ -4,6 +4,7 @@ import 'screens/library_screen.dart';
 import 'screens/settings_screen.dart';
 import 'widgets/bottom_player_bar.dart';
 import 'services/theme_service.dart';
+import 'widgets/bottom_navigation_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +35,14 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Music Player',
-      theme: ThemeService.instance.currentTheme,
+      theme: ThemeService.instance.currentTheme.copyWith(
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: CustomPageTransition(),
+            TargetPlatform.iOS: CustomPageTransition(),
+          },
+        ),
+      ),
       home: const MainScreen(),
     );
   }
@@ -48,66 +56,82 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+  int _currentIndex = 0;
+  final PageController _pageController = PageController();
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const LibraryScreen(),
-    const SettingsScreen(),
-  ];
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  void _onNavTapped(int index) {
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),  // 动画持续时间
-        switchInCurve: Curves.easeInOut,             // 进入动画曲线
-        switchOutCurve: Curves.easeInOut,            // 退出动画曲线
-        transitionBuilder: (child, animation) {
-          return FadeTransition(                     // 使用淡入淡出效果
-            opacity: animation,
-            child: SlideTransition(                  // 同时添加滑动效果
-              position: Tween<Offset>(
-                begin: const Offset(0.1, 0),         // 从右侧轻微滑入
-                end: Offset.zero,
-              ).animate(animation),
-              child: child,
-            ),
-          );
-        },
-        child: _screens[_selectedIndex],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: _onPageChanged,
+        physics: const NeverScrollableScrollPhysics(),
+        children: const [
+          HomeScreen(),
+          LibraryScreen(),
+          SettingsScreen(),
+        ],
       ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_selectedIndex != 0) const BottomPlayerBar(),
-          NavigationBar(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            animationDuration: const Duration(milliseconds: 300),  // 导航栏动画时间
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.headphones_outlined),
-                selectedIcon: Icon(Icons.headphones),
-                label: '首页',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.album_outlined),
-                selectedIcon: Icon(Icons.album),
-                label: '资料库',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.tune_outlined),
-                selectedIcon: Icon(Icons.tune),
-                label: '设置',
-              ),
-            ],
+          if (_currentIndex != 0) const BottomPlayerBar(),
+          ModernBottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: _onNavTapped,
           ),
         ],
+      ),
+    );
+  }
+}
+
+// 自定义页面切换动画
+class CustomPageTransition extends PageTransitionsBuilder {
+  const CustomPageTransition();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+      ),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.1),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        )),
+        child: child,
       ),
     );
   }
